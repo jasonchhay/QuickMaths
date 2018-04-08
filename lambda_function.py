@@ -93,7 +93,7 @@ def answer_question(intent, session):
             session_attributes['question'] = generate_question()
             speech_output += speech_question(session_attributes['question'])
         else:
-            speech_output="Incorrect"
+            speech_output="Incorrect, "
             speech_output += speech_question(session_attributes['question'])
             
         #if score is 10, stop the game
@@ -101,11 +101,11 @@ def answer_question(intent, session):
             session_attributes['endTime'] = time.time()
             print(session_attributes['endTime'],session_attributes.get('startTime'), session_attributes.get('startGame'))
             speech_output = "You have reached the end of the 10 questions. " \
-                            "Your score is %.2f seconds. Try to beat your score." \
-                            "Thank you for playing. " % (session_attributes.get('endTime') - session_attributes.get('startTime'))
+                            "Your score is %.2f seconds, Try to beat your score," \
+                            "Thank you for playing, " % (session_attributes.get('endTime') - session_attributes.get('startTime'))
             should_end_session = True
     else:
-        speech_output = "The game has not started yet. Say start the game when you are ready."
+        speech_output = "Sorry, I didn't get that. Say, start the game, to begin."
         
     return build_response(session_attributes, build_speechlet_response(
         card_title, speech_output, reprompt_text, should_end_session))
@@ -146,10 +146,10 @@ def get_welcome_response():
     card_title = "Welcome"
     speech_output = "Welcome to Quick Maths. " \
                     "The following test will test your multiplication and division skills, " \
-                    "You will be asked to answer 10 questions as fast as possible, Say, start the game to begin."
+                    "You will be asked to answer 10 questions as fast as possible, Say, start the game, to begin."
     # If the user either does not reply to the welcome message or says something
     # that is not understood, they will be prompted again with this text.
-    reprompt_text = "Sorry, I didn't catch that. Say start the game to begin."
+    reprompt_text = "Sorry, I didn't catch that. Say, start the game, to begin."
 
     should_end_session = False
     return build_response(session_attributes, build_speechlet_response(
