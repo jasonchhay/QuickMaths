@@ -2,6 +2,16 @@ import random
 import time
 
 """
+Session attributes will have the following values:
+    startGame : start the game
+    startTime : the time the quiz starts
+    endTime : the time the quiz ends
+    question : the current question the user must ask
+    score : the number of questions answered
+
+"""
+
+"""
 >Add in StartIntent to take in slot for "Start the game" to initiate the start question 
 >Have it insert AnswerIntent
 >Test mine and Jake's code with his integrated 
@@ -27,38 +37,56 @@ def generate_question():
     else:
         return product,number1,"divided by",number2
 
-#Helper method to give the user a question, have them answer it through AnswerIntent
-def answer_question(intent, session):
-    session_attributes = {}
-    card_title = intent["name"]
-    should_end_session = False
-
-    question = generate_question()
-    answer = intent['slots']['answer']
+#say a question
+def speech_question(question):
     speech_output = "{} {} {}".format(question[0],question[2],question[1])
-
-    if(answer == None):
-        reprompt_text="Sorry, I didn't get that."
-    elif(answer == question[3]):
-        speech_output = "Correct."
-    else:
-        reprompt_text="Try again. {} {} {}".format(question[0],question[2],question[1])
-    
-    return build_response(session_attributes, build_speechlet_response(
-        card_title, speech_output, reprompt_text, should_end_session))
 
 #Starts the quiz
 def start_quiz(intent, session):
-    start = time.time()
+    session_attributes = {'startQuiz': = True}
+    speech_out = "The game will begin in 3, 2, 1. Go!"
+
+    session_attributes={'startTime': = time.time(), 'question' : generate_question(), 'score' : 0}
+    speech_question(session_attributes['question'])
+
+    return build_response(session_attributes, build_speechlet_response(
+        card_title, speech_output, reprompt_text, should_end_session))
+
+#Helper method to give the user a question, have them answer it through AnswerIntent
+def answer_question(intent, session):
+    card_title = intent["name"]
+    session_attributes = session.get('attributes',{})
+    should_end_session = False
 
     num_of_questions = 15
 
-    for i in range(0,num_of_questions,1):
-        answer_question(intent,session)
-    end = time.time()
+    answer = intent['slots']['answer']
 
-    speech_output="You answered {} in {} seconds.".format(num_of_questions, end-start)
-    should_end_session = True
+    #if game hasn't started yet
+    if session_attributes['startGame']:
+
+        if(answer == None):
+            reprompt_text="Sorry, I didn't get that."
+        elif(answer == session_attributes['question'][3]):
+            speech_output = "Correct."
+            session_attributes['score'] = session_attributes['score'] + 1
+            session_attributes['question'] = generate_question()
+            speech_question(session_attributes['question'])
+
+        else:
+            reprompt_text="Try again."
+            speech_question(session_attributes['question'])
+        #if score is 15, stop the game
+                #if the score is less than 15, keep playing the game
+        if(session_attributes['score'] < num_of_questions):
+            session_attributes['endTime'] = time.time()
+            speech_output = "You have reached the end of the 15 questions. " \
+                            "Your score is {} seconds. Try to beat your score." \
+                            "Thank you for playing. " 
+            should_end_session = True
+    else:
+        speech_out = "The game has not started yet. Say start the game when you are ready."
+
     return build_response(session_attributes, build_speechlet_response(
         card_title, speech_output, reprompt_text, should_end_session))
 
@@ -95,14 +123,18 @@ def build_response(session_attributes, speechlet_response):
 
 def get_welcome_response():
     session_attributes = {}
+    startQuiz = False
+    startTime = 0
+    score = 0
+
     card_title = "Welcome"
     speech_output = "Welcome to Quick Maths. " \
                     "The following test will test your multiplication and division skills, " \
-                    "There are twenty questions that will be asked, Are you ready to play?"
+                    "You will be asked to answer 20 questions as fast as possible, Say, start the game to begin."
     # If the user either does not reply to the welcome message or says something
     # that is not understood, they will be prompted again with this text.
-    reprompt_text = "The following test will test your multiplication and division skills, " \
-                    "There are twenty questions that will be asked, Are you ready to play?"
+    reprompt_text = "Sorry, I didn't catch that. Say start the game to begin."
+
     should_end_session = False
     return build_response(session_attributes, build_speechlet_response(
         card_title, speech_output, reprompt_text, should_end_session))
@@ -115,25 +147,6 @@ def handle_session_end_request():
     should_end_session = True
     return build_response({}, build_speechlet_response(
         card_title, speech_output, None, should_end_session))
-
-def set_question_in_session(intent, session, question):
-    card_title = intent['name']
-    session_attributes = {
-    should_end_session = False
-# >>>> Set Intent Name below (I guessed lol)
-     if 'Question' in intent['slots']:
-        result = intent['slots']['Question']['value']
-        session_attributes = result(question) #here too
-        speech_output = #question var here
-        reprompt_text = #not sure what to put
-    else:
-        speech_output = "I'm not sure what you just said. " \
-                        "Please try again."
-        reprompt_text = "I'm not sure what you just said. " \
-                        "Please restate your answer,"
-    return build_response(session_attributes, build_speechlet_response(
-        card_title, speech_output, reprompt_text, should_end_session))
-
 # =========================================================================
 
 def on_session_started(session_started_request, session):
@@ -153,7 +166,7 @@ def on_launch(launch_request, session):
     # Dispatch to your skill's launch
     return get_welcome_response()
 
-
+ 
 def on_intent(intent_request, session):
     """ Called when the user specifies an intent for this skill """
 
@@ -165,9 +178,9 @@ def on_intent(intent_request, session):
 
     # THE MIDDLE MAN
     if intent_name == "StartIntent":
-        return addition(intent, session)
+        return start_quiz(intent,session)
     elif intent_name == "AnswerIntent":
-        return subtract(intent, session)
+        return quiz(intent, session)
     elif intent_name == "AMAZON.HelpIntent":
         return get_welcome_response()
     elif intent_name == "AMAZON.CancelIntent" or intent_name == "AMAZON.StopIntent":
