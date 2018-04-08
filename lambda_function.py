@@ -1,7 +1,68 @@
-# Creates the responses that Alexa uses================================================
+import random
 import time
-#Add the timer to time the user throughout the quiz
 
+"""
+>Add in StartIntent to take in slot for "Start the game" to initiate the start question 
+>Have it insert AnswerIntent
+>Test mine and Jake's code with his integrated 
+>Add in replayability
+"""
+#---------------------------------QUESTION HELPER METHODS---------------------------------#
+#Helper method to create a question
+def generate_question():
+    number1 = random.randInt(1,12)
+    number2 = random.randInt(1,12)
+
+    product = number1*number2
+
+    #if operator = 0, multiplication
+    #if operator = 1, division
+    operator = random.randInt(0,1)
+
+    #format is number 1, number 2, operator, answer
+    #EX: (2,5,0,10) => 2*5=10
+    #EX: (10,2,1,5) => 10/2=5
+    if(operator == 0):
+        return number1,number2,"times",product
+    else:
+        return product,number1,"divided by",number2
+
+#Helper method to give the user a question, have them answer it through AnswerIntent
+def answer_question(intent, session):
+    session_attributes = {}
+    card_title = intent["name"]
+    should_end_session = False
+
+    question = generate_question()
+    answer = intent['slots']['answer']
+    speech_output = "{} {} {}".format(question[0],question[2],question[1])
+
+    if(answer == None):
+        reprompt_text="Sorry, I didn't get that."
+    elif(answer == question[3]):
+        speech_output = "Correct."
+    else:
+        reprompt_text="Try again. {} {} {}".format(question[0],question[2],question[1])
+    
+    return build_response(session_attributes, build_speechlet_response(
+        card_title, speech_output, reprompt_text, should_end_session))
+
+#Starts the quiz
+def start_quiz(intent, session):
+    start = time.time()
+
+    num_of_questions = 15
+
+    for i in range(0,num_of_questions,1):
+        answer_question(intent,session)
+    end = time.time()
+
+    speech_output="You answered {} in {} seconds.".format(num_of_questions, end-start)
+    should_end_session = True
+    return build_response(session_attributes, build_speechlet_response(
+        card_title, speech_output, reprompt_text, should_end_session))
+
+# Creates the responses that Alexa uses
 def build_speechlet_response(title, output, reprompt_text, should_end_session):
     return {
         'outputSpeech': {
@@ -30,7 +91,7 @@ def build_response(session_attributes, speechlet_response):
         'response': speechlet_response
     }
 
-#==============================Greeting=And=Other=Shit==================================
+# =================================CUSTOM====================================
 
 def get_welcome_response():
     session_attributes = {}
@@ -73,26 +134,7 @@ def set_question_in_session(intent, session, question):
     return build_response(session_attributes, build_speechlet_response(
         card_title, speech_output, reprompt_text, should_end_session))
 
-def get_result_from_session(intent, session, question): #add question count to this?
-    session_attributes = {}
-    reprompt_text = None
-
-    if questionCount <= 20
-        speech_output = question #add potential sound effect based on correct/wrong
-        should_end_session = False
-        questionCount = questionCount + 1
-    else:
-        speech_output = "You have completed the quiz!" \
-                        ". Your total score was." + score + "out of " questionCount.format(result)
-        should_end_session = True #Add replayability feature?
-
-    # Setting reprompt_text to None signifies that we do not want to reprompt
-    # the user. If the user does not respond or says something that is not
-    # understood, the session will end.
-    return build_response(session_attributes, build_speechlet_response(
-        intent['name'], speech_output, reprompt_text, should_end_session))
-
-#=============================================Calling=On=Intents=========================================
+# =========================================================================
 
 def on_session_started(session_started_request, session):
     """ Called when the session starts """
@@ -108,6 +150,7 @@ def on_launch(launch_request, session):
 
     print("on_launch requestId=" + launch_request['requestId'] +
           ", sessionId=" + session['sessionId'])
+    # Dispatch to your skill's launch
     return get_welcome_response()
 
 
@@ -120,14 +163,11 @@ def on_intent(intent_request, session):
     intent = intent_request['intent']
     intent_name = intent_request['intent']['name']
 
-     if intent_name == "AdditionIntent": #Replace all intents and add as necessary in this bit
+    # THE MIDDLE MAN
+    if intent_name == "StartIntent":
         return addition(intent, session)
-    elif intent_name == "SubtractingIntent":
+    elif intent_name == "AnswerIntent":
         return subtract(intent, session)
-    elif intent_name == "MultiplyIntent":
-        return multiply(intent, session)
-    elif intent_name == "DivisionIntent":
-        return divide(intent, session)
     elif intent_name == "AMAZON.HelpIntent":
         return get_welcome_response()
     elif intent_name == "AMAZON.CancelIntent" or intent_name == "AMAZON.StopIntent":
@@ -138,16 +178,18 @@ def on_intent(intent_request, session):
 
 def on_session_ended(session_ended_request, session):
     """ Called when the user ends the session.
-
     Is not called when the skill returns should_end_session=true
     """
     print("on_session_ended requestId=" + session_ended_request['requestId'] +
           ", sessionId=" + session['sessionId'])
     # add cleanup logic here
 
-# ====================================Lambda=Function============================================
+# =============================================================================
 
 def lambda_handler(event, context):
+    """ Route the incoming request based on type (LaunchRequest, IntentRequest,
+    etc.) The JSON body of the request is provided in the event parameter.
+    """
     print("event.session.application.applicationId=" +
           event['session']['application']['applicationId'])
 
@@ -170,7 +212,3 @@ def lambda_handler(event, context):
         return on_intent(event['request'], event['session'])
     elif event['request']['type'] == "SessionEndedRequest":
         return on_session_ended(event['request'], event['session'])
-
-#======================================Add=All=Extra=Methods=Below==================================
-
-
