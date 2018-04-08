@@ -87,6 +87,8 @@ def answer_question(intent, session):
         print(type(answer))
         if(answer == None):
             speech_output="Sorry, I didn't get that,"
+            speech_output += speech_question(session_attributes['question'])
+
         elif(type(answer) == int and answer == session_attributes.get('question')[3]):
             speech_output = ("Correct, ")
             session_attributes['score'] = session_attributes.get('score') + 1
