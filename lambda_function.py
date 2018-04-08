@@ -76,21 +76,24 @@ def answer_question(intent, session):
 
     num_of_questions = 10
 
-    answer = int(intent['slots']['answer']['value'])
+    try:
+        answer = int(intent['slots']['answer']['value'])
+    except(ValueError):
+        answer = None
 
     #if game hasn't started yet
     if session_attributes.get('startGame') == True:
         
         print(type(answer))
         if(answer == None):
-            reprompt_text="Sorry, I didn't get that."
+            speech_output="Sorry, I didn't get that,"
         elif(type(answer) == int and answer == session_attributes.get('question')[3]):
-            speech_output = ("Correct ")
+            speech_output = ("Correct, ")
             session_attributes['score'] = session_attributes.get('score') + 1
             session_attributes['question'] = generate_question()
             speech_output += speech_question(session_attributes['question'])
         else:
-            speech_output="Sorry, try again"
+            speech_output="Incorrect"
             speech_output += speech_question(session_attributes['question'])
             
         #if score is 10, stop the game
