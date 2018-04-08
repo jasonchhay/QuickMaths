@@ -70,36 +70,37 @@ def start_quiz(intent, session):
 def answer_question(intent, session):
     card_title = intent["name"]
     session_attributes = session.get('attributes',{})
+    speech_output = ""
     reprompt_text = ""
     should_end_session = False
 
-    num_of_questions = 15
+    num_of_questions = 10
 
-    answer = intent['slots']['answer']
+    answer = int(intent['slots']['answer']['value'])
 
     #if game hasn't started yet
-    if session_attributes.get('startGame') != None:
+    if session_attributes.get('startGame') == True:
+        
+        print(type(answer))
         if(answer == None):
             reprompt_text="Sorry, I didn't get that."
-        elif(answer == session_attributes['question'][3]):
-            speech_output = ("Correct.")
-            
-            session_attributes['score'] = session_attributes['score'] + 1
-
-        else:
-            reprompt_text="Try again."
-            reprompt_text += speech_question(session_attributes['question'])
-        #if score is 15, stop the game
-        if(session_attributes['score'] < num_of_questions):
-            session_attributes['endTime'] = time.time()
-            print(session_attributes['endTime'],session_attributes.get('startTime'), session_attributes.get('startGame'))
-            speech_output = "You have reached the end of the 15 questions. " \
-                            "Your score is {} seconds. Try to beat your score." \
-                            "Thank you for playing. ".format(session_attributes.get('endTime') - session_attributes.get('startTime'))
-            should_end_session = True
-        else:
+        elif(type(answer) == int and answer == session_attributes.get('question')[3]):
+            speech_output = ("Correct ")
+            session_attributes['score'] = session_attributes.get('score') + 1
             session_attributes['question'] = generate_question()
             speech_output += speech_question(session_attributes['question'])
+        else:
+            speech_output="Sorry, try again"
+            speech_output += speech_question(session_attributes['question'])
+            
+        #if score is 10, stop the game
+        if(session_attributes.get('score') >= num_of_questions):
+            session_attributes['endTime'] = time.time()
+            print(session_attributes['endTime'],session_attributes.get('startTime'), session_attributes.get('startGame'))
+            speech_output = "You have reached the end of the 10 questions. " \
+                            "Your score is %.2f seconds. Try to beat your score." \
+                            "Thank you for playing. " % (session_attributes.get('endTime') - session_attributes.get('startTime'))
+            should_end_session = True
     else:
         speech_output = "The game has not started yet. Say start the game when you are ready."
         
@@ -142,7 +143,7 @@ def get_welcome_response():
     card_title = "Welcome"
     speech_output = "Welcome to Quick Maths. " \
                     "The following test will test your multiplication and division skills, " \
-                    "You will be asked to answer 20 questions as fast as possible, Say, start the game to begin."
+                    "You will be asked to answer 10 questions as fast as possible, Say, start the game to begin."
     # If the user either does not reply to the welcome message or says something
     # that is not understood, they will be prompted again with this text.
     reprompt_text = "Sorry, I didn't catch that. Say start the game to begin."
