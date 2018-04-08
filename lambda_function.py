@@ -1,4 +1,7 @@
-# Creates the responses that Alexa uses
+# Creates the responses that Alexa uses================================================
+import time
+#Add the timer to time the user throughout the quiz
+
 def build_speechlet_response(title, output, reprompt_text, should_end_session):
     return {
         'outputSpeech': {
@@ -27,69 +30,61 @@ def build_response(session_attributes, speechlet_response):
         'response': speechlet_response
     }
 
-# =================================CUSTOM====================================
+#==============================Greeting=And=Other=Shit==================================
 
 def get_welcome_response():
     session_attributes = {}
     card_title = "Welcome"
-    speech_output = "Welcome to QuickMaths. You have 20 questions, answer them as fast as possible." 
+    speech_output = "Welcome to Quick Maths. " \
+                    "The following test will test your multiplication and division skills, " \
+                    "There are twenty questions that will be asked, Are you ready to play?"
     # If the user either does not reply to the welcome message or says something
     # that is not understood, they will be prompted again with this text.
-    reprompt_text = "Provide two numbers for me to manipulate, " \
-                    "Say Number One, List an Operator, and then the second number, "
+    reprompt_text = "The following test will test your multiplication and division skills, " \
+                    "There are twenty questions that will be asked, Are you ready to play?"
     should_end_session = False
     return build_response(session_attributes, build_speechlet_response(
         card_title, speech_output, reprompt_text, should_end_session))
 
-
 def handle_session_end_request():
     card_title = "Session Ended"
-    speech_output = "Thank you for trying the Calculator Function. " \
-                    ". Goodbye."
+    speech_output = "Thank you for playing Quick Maths. " \
+                    ". Come play again soon!"
     # Setting this to true ends the session and exits the skill.
     should_end_session = True
     return build_response({}, build_speechlet_response(
         card_title, speech_output, None, should_end_session))
 
-
-def set_result_in_session(intent, session, result):
-   
-
+def set_question_in_session(intent, session, question):
     card_title = intent['name']
     session_attributes = {
     should_end_session = False
-# >>>>
-     if 'Result' in intent['slots']:
-        result = intent['slots']['Result']['value']
-        session_attributes = result(favorite_color)
-        speech_output = "The result of the given input is" + \
-                        result + \
-                        "You can ask me to add subtract multiply or divide two numbers by saying, " \
-                        "the first number followed by an operator and then the second number,"
-        reprompt_text = "You can ask me to add subtract multiply or divide two numbers by saying, " \
-                        "the first number followed by an operator and then the second number,"
+# >>>> Set Intent Name below (I guessed lol)
+     if 'Question' in intent['slots']:
+        result = intent['slots']['Question']['value']
+        session_attributes = result(question) #here too
+        speech_output = #question var here
+        reprompt_text = #not sure what to put
     else:
         speech_output = "I'm not sure what you just said. " \
                         "Please try again."
         reprompt_text = "I'm not sure what you just said. " \
-                        "You can ask me to add subtract multiply or divide two numbers by saying, " \
-                        "the first number followed by an operator and then the second number,"
+                        "Please restate your answer,"
     return build_response(session_attributes, build_speechlet_response(
         card_title, speech_output, reprompt_text, should_end_session))
 
-
-def get_result_from_session(intent, session, result):
+def get_result_from_session(intent, session, question): #add question count to this?
     session_attributes = {}
     reprompt_text = None
 
-    if result != None
-        speech_output = "Your result is {}" + \
-                        ". Goodbye.".format(result)
-        should_end_session = True
-    else:
-        speech_output = "I'm not sure what you said" \
-                        "Can you try saying that again more clearly"
+    if questionCount <= 20
+        speech_output = question #add potential sound effect based on correct/wrong
         should_end_session = False
+        questionCount = questionCount + 1
+    else:
+        speech_output = "You have completed the quiz!" \
+                        ". Your total score was." + score + "out of " questionCount.format(result)
+        should_end_session = True #Add replayability feature?
 
     # Setting reprompt_text to None signifies that we do not want to reprompt
     # the user. If the user does not respond or says something that is not
@@ -97,7 +92,7 @@ def get_result_from_session(intent, session, result):
     return build_response(session_attributes, build_speechlet_response(
         intent['name'], speech_output, reprompt_text, should_end_session))
 
-# =========================================================================
+#=============================================Calling=On=Intents=========================================
 
 def on_session_started(session_started_request, session):
     """ Called when the session starts """
@@ -113,7 +108,6 @@ def on_launch(launch_request, session):
 
     print("on_launch requestId=" + launch_request['requestId'] +
           ", sessionId=" + session['sessionId'])
-    # Dispatch to your skill's launch
     return get_welcome_response()
 
 
@@ -126,8 +120,7 @@ def on_intent(intent_request, session):
     intent = intent_request['intent']
     intent_name = intent_request['intent']['name']
 
-    # THE MIDDLE MAN
-    if intent_name == "AdditionIntent":
+     if intent_name == "AdditionIntent": #Replace all intents and add as necessary in this bit
         return addition(intent, session)
     elif intent_name == "SubtractingIntent":
         return subtract(intent, session)
@@ -145,18 +138,16 @@ def on_intent(intent_request, session):
 
 def on_session_ended(session_ended_request, session):
     """ Called when the user ends the session.
+
     Is not called when the skill returns should_end_session=true
     """
     print("on_session_ended requestId=" + session_ended_request['requestId'] +
           ", sessionId=" + session['sessionId'])
     # add cleanup logic here
 
-# =============================================================================
+# ====================================Lambda=Function============================================
 
 def lambda_handler(event, context):
-    """ Route the incoming request based on type (LaunchRequest, IntentRequest,
-    etc.) The JSON body of the request is provided in the event parameter.
-    """
     print("event.session.application.applicationId=" +
           event['session']['application']['applicationId'])
 
@@ -180,92 +171,6 @@ def lambda_handler(event, context):
     elif event['request']['type'] == "SessionEndedRequest":
         return on_session_ended(event['request'], event['session'])
 
-# ==============================================================================
+#======================================Add=All=Extra=Methods=Below==================================
 
-def addition(intent, session):
-    session_attributes = {}
-    should_end_session = False
 
-    number1 = None
-    number2 = None
-
-    if 'NumberOne' in intent['slots']:
-        number1 = intent['slots']['NumberOne']['value']
-
-    if 'NumberTwo' in intent['slots']:
-        number2 = intent['slots']['NumberTwo']['value']
-
-    if number1 == None or number2 == None:
-        result = None
-    else:
-        result = number1 + number2
-
-    return get_result_session(intent, session, result)
-
-# ==============================================================================
-
-def subtract():
-    session_attributes = {}
-    should_end_session = False
-
-    number1 = None
-    number2 = None                                      
-
-    if 'NumberOne' in intent['slots']:
-        number1 = intent['slots']['NumberOne']['value']
-    
-    if 'NumberTwo' in intent['slots']:
-        number2 = intent['slots']['NumberTwo']['value']
-
-    if number1 == None or number2 == None:
-        result = None
-    else:
-        result = number1 - number2
-
-    return get_result_session(intent, session, result)
-
-#==============================================================================
-
-def multiply():
-    session_attributes = {}
-    should_end_session = False
-
-    number1 = None
-    number2 = None
-
-    if 'NumberOne' in intent['slots']:
-        number1 = intent['slots']['NumberOne']['value']
-
-    if 'NumberTwo' in intent['slots']:
-        number2 = intent['slots']['NumberTwo']['value']
-
-    if number1 == None or number2 == None:
-        result = None
-    else:
-        result = number1 * number2
-
-    return get_result_session(intent, session, result)
-
-# ===============================================================================
-
-def divide():
-    session_attributes = {}
-    should_end_session = False
-
-    number1 = None
-    number2 = None
-
-    if 'NumberOne' in intent['slots']:
-        number1 = intent['slots']['NumberOne']['value']
-
-    if 'NumberTwo' in intent['slots']:
-        number2 = intent['slots']['NumberTwo']['value']
-
-    if number1 == None or number2 == None:
-        result = None
-    else:
-        result = number1 / number2
-
-    return get_result_session(intent, session, result)
-
-# =================================================================================
