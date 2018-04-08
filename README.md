@@ -3,7 +3,7 @@
 The inspiration for the this project was implementing a quiz functionality within Amazon Alexa to focus on mental math that is commonly practiced by grade schoolers. In fourth grade, both of us were challenged daily with a sheet of 50 multiplication/division questions to help build upon our mental math skills. <br />
 
 ## What it does <br />
-This Alexa Skill quizzes the user on 15 randomized multiplication and division questions where the user must verbally answer the questions as fast as possible. The user is then given a score based on how quickly the user was able to answer all 15 questions. This is to encourage the user to keep playing the game to improve their speed as well as their mental math skills. <br/ >
+This Alexa Skill quizzes the user on 10 randomized multiplication and division questions where the user must verbally answer the questions as fast as possible. The user is then given a score based on how quickly the user was able to answer all 15 questions. This is to encourage the user to keep playing the game to improve their speed as well as their mental math skills. <br/ >
 
 ## How we built it <br />
 We reverse engineered a sample Alexa skill with Python in order to learn how it functioned. First, we created a calculator that takes two numbers and performs an operation based on what the user verbally input. Moving forward, we saw potential in creating a "quiz" game where Alexa would ask randomized math questions to the user based on this algorithm. We repurposed our code and added a variety of new functions to it in order to meet our goal. We had to go to the IT reps a few times over the course of the development process, but we were able to successfully create the quiz application. <br />
