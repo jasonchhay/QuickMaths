@@ -1,4 +1,4 @@
-# hackpsu-spr2018
+# QuickMaths
 ## Inspiration <br />
 The inspiration for the this project was implementing a quiz functionality within Amazon Alexa to focus on mental math that is commonly practiced by grade schoolers. In fourth grade, both of us were challenged daily with a sheet of 50 multiplication/division questions to help build upon our mental math skills. <br />
 
